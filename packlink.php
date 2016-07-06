@@ -276,7 +276,7 @@ class Packlink extends Module
      */
     private function installTabs()
     {
-        
+
         $menu_id = 14;
 
         // Install All Tabs directly via controller's install function
@@ -298,7 +298,7 @@ class Packlink extends Module
         }
         return true;
     }
-    
+
 
     /**
      * Delete tab
@@ -312,7 +312,7 @@ class Packlink extends Module
     ############################################################################################################
     # SQL
     ############################################################################################################
-    
+
     /**
      * Install DataBase table
      * @return boolean if install was successfull
@@ -335,7 +335,7 @@ class Packlink extends Module
                 }
             }
         }
-        
+
         $sql = array();
         $sql[] = "CREATE TABLE IF NOT EXISTS `"._DB_PREFIX_."packlink_orders` (
               `id_order` INT(11) NOT NULL PRIMARY KEY,
@@ -375,12 +375,12 @@ class Packlink extends Module
                 }
             }
         }
-        
+
         $sql = "DROP TABLE IF EXISTS `"._DB_PREFIX_."packlink_orders`";
         if (!DB::getInstance()->execute($sql)) {
             return false;
         }
-    
+
         return true;
     }
 
@@ -423,7 +423,7 @@ class Packlink extends Module
         if (!$this->registerHook('ActionOrderStatusUpdate')) {
             return false;
         }
-        
+
         return true;
     }
 
@@ -452,7 +452,7 @@ class Packlink extends Module
         $packlink_deleted = $this->deletedPacklink();
 
         $sdk = new PacklinkSDK(Configuration::get('PL_API_KEY'), $this);
-        
+
         $default_language = new Language(Configuration::get('PS_LANG_DEFAULT'));
         $language = $default_language->iso_code;
         $language_code = $default_language->language_code;
@@ -479,7 +479,7 @@ class Packlink extends Module
         }
 
         if (Tools::getValue('submit-address')) {
- 
+
             //Refaire call api pour récupérer les valeurs d'identifiants de zip code et postalzone
 
             $packlink_name = Tools::getValue('shop_name');
@@ -527,7 +527,7 @@ class Packlink extends Module
             );
 
             $error_city = false;
-            
+
             if (empty($datas_city)) {
                 $error_city = true;
             }
@@ -550,7 +550,7 @@ class Packlink extends Module
             } else {
                 $output .=$this->displayConfirmation($this->l('Settings updated successfully'));
             }
-          
+
         } else {
             $packlink_name = Configuration::get('PL_API_BOUTIQUE');
             $packlink_firstname = Configuration::get('PL_API_FIRSTNAME');
@@ -579,7 +579,7 @@ class Packlink extends Module
                 'platform_country' => $language
             )
         );
-  
+
 
         if (Tools::getValue('submit-conversion')) {
             $length = Tools::getValue('length');
@@ -625,9 +625,9 @@ class Packlink extends Module
             $this->context->controller->addCSS($this->_path.'views/css/bootstrap.min.css', 'all');
             $this->context->controller->addJS(_PS_JS_DIR_.'/jquery/plugins/autocomplete/jquery.autocomplete.js', 'all');
         }
-        
+
         return $output.$this->display(__FILE__, 'back.tpl');
-        
+
     }
 
 
@@ -663,7 +663,7 @@ class Packlink extends Module
         return $is_deleted;
 
     }
-    
+
     public function getCartAddressDelivery($id_address_delivery)
     {
 
@@ -741,7 +741,7 @@ class Packlink extends Module
         $order = new Order((int) $id_order_params);
 
         if ($order->id_carrier == (int)(Configuration::get('PL_API_CARRIER'))) {
-        
+
             $address_delivery = $this->getCartAddressDelivery($order->id_address_delivery);
             $country_delivery = $this->getCartCountryDelivery($address_delivery[0]['id_country']);
             $state_delivery = $this->getCartStateDelivery($address_delivery[0]['id_state']);
@@ -774,7 +774,7 @@ class Packlink extends Module
                 }
             }
 
-            
+
 
             $shipments_datas =
                  array(
@@ -814,7 +814,7 @@ class Packlink extends Module
                     'source' => 'module_prestashop',
             );
 
-            if (count($cart_products) > 1) {
+            if (count($cart_products) > 0) {
                 $packages = array(
                      'weight' => 0,
                      'length' => 0,
@@ -837,7 +837,7 @@ class Packlink extends Module
                     $width = $this->convertToDistance($value['width']);
                     $height = $this->convertToDistance($value['height']);
                     $depth = $this->convertToDistance($value['depth']);
-                    
+
                     $value['cart_quantity'] = $value['product_quantity'];
 
                     $items =
@@ -861,31 +861,10 @@ class Packlink extends Module
                              'height' => $height
                         );
                         $shipments_datas['additional_data']['items'][$cmpt]['package'][] = $packages;
-                        
+
                     }
                     $cmpt++;
                 }
-            } else {
-                
-
-                foreach ($cart_products as $key => $value) {
-
-                    $weight = $this->convertToWeight($cart_products[$key]['weight']);
-                    $width = $this->convertToDistance($cart_products[$key]['width']);
-                    $height = $this->convertToDistance($cart_products[$key]['height']);
-                    $depth = $this->convertToDistance($cart_products[$key]['depth']);
-
-                    for ($i = 1; $i <= $cart_products[$key]['product_quantity']; $i++) {
-                        $packages = array(
-                             'weight' => $weight,
-                             'length' => $depth,
-                             'width' => $width,
-                             'height' => $height
-                        );
-                        $shipments_datas['packages'][] = $packages;
-                    }
-                }
-                
             }
 
 
@@ -923,14 +902,14 @@ class Packlink extends Module
                     }
                 }
             }
-            
+
             $this->logs[] = '======================================================================================================';
 
             if ($this->debug) {
                 $this->writeLog();
             }
 
- 
+
 
             $_packlink_orders_old = new PLOrder($order->id);
 
@@ -946,7 +925,7 @@ class Packlink extends Module
                     $_packlink_orders->postalzone = $postal_zone_id_to;
                     $_packlink_orders->save();
                 }
-                
+
             }
         }
     }
