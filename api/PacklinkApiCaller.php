@@ -56,7 +56,7 @@ abstract class PacklinkApiCall
      * If debug mod
      * @var boolean
      */
-    protected $debug = true;
+    protected $debug = false;
 
     /**
      * 401 User
@@ -107,14 +107,27 @@ abstract class PacklinkApiCall
 
         if ($body != null) {
 
-            $stream_context = stream_context_create(
-                array (
-                    'http' => array (
-                        'method' => 'POST',
-                        'content' => $body
-                        )
-                )
-            );
+            if ($http_header) {
+                $stream_context = stream_context_create(
+                    array (
+                        'http' => array (
+                            'method' => 'POST',
+                            'content' => $body,
+                            'header'=> $http_header
+                            )
+                    )
+                );
+            } else {
+                $stream_context = stream_context_create(
+                    array (
+                        'http' => array (
+                            'method' => 'POST',
+                            'content' => $body
+                            )
+                    )
+                );
+            }
+      
         } else {
             $stream_context = array();
         }
@@ -156,13 +169,28 @@ abstract class PacklinkApiCall
                     if (isset($opts['http']['content'])) {
                         curl_setopt($curl, CURLOPT_POSTFIELDS, $opts['http']['content']);
                     }
+                    if (isset($opts['http']['header'])) {
+                        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+                           "Content-type: application/json",
+                            "Content-Length: " . strlen($opts['http']['content']),
+                            "Authorization: ".$opts['http']['header']
+                        ));
+                    } else {
+                        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+                           "Content-type: application/json",
+                            "Content-Length: " . strlen($opts['http']['content']),
+                            "Authorization: ".Configuration::get('PL_API_KEY')
+                        ));
+                    }
+                } else {
                     curl_setopt($curl, CURLOPT_HTTPHEADER, array(
                        "Content-type: application/json",
-                        "Content-Length: " . strlen($opts['http']['content']),
                         "Authorization: ".Configuration::get('PL_API_KEY')
                     ));
                 }
             }
+
+            
             
             foreach ($opts as $key => $option) {
                 foreach ($option as $key => $value) {

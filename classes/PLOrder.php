@@ -25,6 +25,10 @@ class PLOrder extends ObjectModel
 
     public $postalzone;
 
+    public $details;
+
+    public $pdf;
+
     /**
      * @see ObjectModel::$definition
      */
@@ -37,6 +41,8 @@ class PLOrder extends ObjectModel
             'draft_reference' => array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true),
             'postcode' => array('type' => self::TYPE_STRING),
             'postalzone' => array('type' => self::TYPE_STRING),
+            'details' => array('type' => self::TYPE_STRING),
+            'pdf' => array('type' => self::TYPE_STRING),
         )
     );
 }
