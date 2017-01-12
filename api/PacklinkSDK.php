@@ -28,6 +28,24 @@ class PacklinkSDK extends PacklinkApiCall
         $this->api_key = $api_key;
     }
 
+    public function createAnalitics($body, $api_key)
+    {
+        $this->action = 'POST';
+        $this->endpoint = 'v1/analytics';
+        $this->makeCall($this->getBody($body), $api_key);
+
+        return $this->response;
+    }
+
+    public function createCallback($body, $api_key)
+    {
+        $this->action = 'POST';
+        $this->endpoint = 'v1/shipments/callback';
+        $this->makeCall($this->getBody($body), $api_key);
+
+        return $this->response;
+    }
+
     public function createDraft($params)
     {
         $this->action = 'POST';
@@ -36,6 +54,8 @@ class PacklinkSDK extends PacklinkApiCall
 
         return $this->response;
     }
+
+
 
     protected function getBody(array $fields)
     {
@@ -60,21 +80,28 @@ class PacklinkSDK extends PacklinkApiCall
         array('id' => '76', 'name' => 'France métropolitaine'),
         array('id' => '77', 'name' => 'France Corse')
     */
-    public function getPostalZones($params)
+
+    public function getPdfLabels($params)
     {
         $this->action = 'GET';
-        $this->endpoint = 'v1/locations/postalzones/origins?language='.$params['language'].'&platform='.$params['platform'].'&platform_country='.$params['platform_country'].'';
+        $this->endpoint = 'v1/shipments/'.$params.'/labels';
+        $this->makeCall();
 
+        return $this->response;
+    }
+    public function getPdfLabelsFile($params)
+    {
+        $this->action = 'GET';
+        $this->endpoint = 'v1/shipments/'.$params.'/customs';
         $this->makeCall();
 
         return $this->response;
     }
 
-    public function getPostalCodes($params)
+    public function getWarehouses()
     {
         $this->action = 'GET';
-        $this->endpoint = 'v1/locations/postalcodes?platform='.$params['platform'].'&platform_country='.$params['platform_country'].'&postalzone='.$params['postalzone'].'&q='.$params['q'];
-
+        $this->endpoint = 'v1/clients/warehouses';
         $this->makeCall();
 
         return $this->response;
@@ -85,6 +112,16 @@ class PacklinkSDK extends PacklinkApiCall
         $this->action = 'GET';
         $language = $iso_code.'_'.strtoupper($iso_code);
         $this->endpoint = 'v1/locations/postalcodes/'.$iso_code.'/'.$postcode.'?language='.$language.'&platform=PRO&platform_country='.$iso_code;
+
+        $this->makeCall();
+
+        return $this->response;
+    }
+
+    public function getShippementDetails($reference)
+    {
+        $this->action = 'GET';
+        $this->endpoint = 'v1/shipments/'.$reference;
 
         $this->makeCall();
 
