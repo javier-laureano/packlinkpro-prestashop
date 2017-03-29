@@ -1,1 +1,0 @@
-# PacklinkPRO Prestashop module

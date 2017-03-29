@@ -1,6 +1,6 @@
 <?php
 /**
-* Copyright 2016 OMI Europa S.L (Packlink)
+* Copyright 2017 OMI Europa S.L (Packlink)
 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
 class AdminGeneratePdfPlController extends AdminController
 {
     public function postProcess()
@@ -31,7 +32,8 @@ class AdminGeneratePdfPlController extends AdminController
             $this->action = $action;
         }
     }
-    public function processGeneratePDF() {
+    public function processGeneratePDF()
+    {
         $path = _PS_MODULE_DIR_."packlink/pdf/";
 
         header('Content-type: application/pdf');

@@ -1,6 +1,6 @@
 <?php
 /**
-* Copyright 2016 OMI Europa S.L (Packlink)
+* Copyright 2017 OMI Europa S.L (Packlink)
 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
 include(dirname(__FILE__).'/../../config/config.inc.php');
 include(dirname(__FILE__).'/../../init.php');
 include(dirname(__FILE__).'/packlink.php');
 
 $events = Tools::jsonDecode(Tools::file_get_contents("php://input"));
-$sql = 'SELECT id_order FROM '._DB_PREFIX_.'packlink_orders WHERE draft_reference = "'.$events->data->shipment_reference.'"';
+$sql = 'SELECT id_order FROM '._DB_PREFIX_.'packlink_orders WHERE draft_reference = "'.pSQL($events->data->shipment_reference).'"';
 $id = Db::getInstance()->getValue($sql);
 $order = new Order($id);
 
@@ -35,7 +36,7 @@ if ($events->event == "shipment.carrier.success" && Configuration::get('PL_ST_PE
 } elseif ($events->event == "shipment.tracking.update" && Configuration::get('PL_ST_TRANSIT') && Configuration::get('PL_ST_TRANSIT') != 0) {
     sleep(10); //event arrive dans le meme temps
     $new_state = Configuration::get('PL_ST_TRANSIT');
-} elseif ($events->event == "shipment.delivered" && Configuration::get('PL_ST_DELIVERED') && Configuration::get('PL_ST_DELIVERED') != 0) {
+} elseif ($events->event == "shipment.carrier.delivered" && Configuration::get('PL_ST_DELIVERED') && Configuration::get('PL_ST_DELIVERED') != 0) {
     $new_state = Configuration::get('PL_ST_DELIVERED');
 } else {
     $new_state = '';
