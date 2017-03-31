@@ -1,6 +1,6 @@
 <?php
 /**
-* Copyright 2016 OMI Europa S.L (Packlink)
+* Copyright 2017 OMI Europa S.L (Packlink)
 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -42,6 +42,10 @@ class Packlink extends Module
 
     public $pl_hook = false;
 
+    public $dev = false;
+
+    public $pl_url;
+
     /**
      * Constructor of module
      */
@@ -49,7 +53,7 @@ class Packlink extends Module
     {
         $this->name = 'packlink';
         $this->tab = 'shipping_logistics';
-        $this->version = '1.6.0';
+        $this->version = '1.6.4';
         $this->author = '202-ecommerce';
         $this->module_key = 'a7a3a395043ca3a09d703f7d1c74a107';
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '2.0');
@@ -61,6 +65,19 @@ class Packlink extends Module
 
         $this->displayName = $this->l('Packlink PRO Shipping');
         $this->description = $this->l('Save up to 70% on your shipping costs. No fixed fees, no minimum shipping volume required. Manage all your shipments in a single platform.');
+
+        $default_language = new Country(Configuration::get('PS_COUNTRY_DEFAULT'));
+        $language         = Tools::strtolower($default_language->iso_code);
+     
+        if ($language != "it" && $language != "es" && $language != "fr" && $language != "de") {
+            $language = "es";
+        }
+
+        if ($this->dev) {
+            $this->pl_url = "https://".$language."-profront-integration.packitos.com";
+        } else {
+            $this->pl_url = "https://pro.packlink.".$language;
+        }
     }
 
     private function includeFiles()
@@ -239,57 +256,6 @@ class Packlink extends Module
         return true;
     }
 
-    public function setTranslation($code, $content = null, $pdf = null)
-    {
-
-        switch ($code) {
-            case 1:
-                $this->context->controller->warnings[] = sprintf($this->l('No order was selected. Please select at least one order before applying "Print shipping label" action'));
-                break;
-            case 2:
-                $this->context->controller->warnings[] = sprintf($this->l('The following order(s) need to be sent with Packlink PRO before you can print associated shipping labels: %s'), $content).'<script>$(document).ready(function(){window.location = "'.$pdf.'"});</script>';
-                break;
-            case 3:
-                $this->context->controller->warnings[] = sprintf($this->l('The following order(s) need to be sent with Packlink PRO before you can print associated shipping labels: %s'), $content);
-                break;
-            case 4:
-                $this->context->controller->warnings[] = sprintf($this->l('A shipment was already existing in Packlink PRO for order %s '), $content);
-                break;
-            case 5:
-                $this->context->controller->warnings[] = sprintf($this->l('No order was selected. Please select at least one order before applying "Create shipment" action'));
-                break;
-            case 6:
-                $this->context->controller->confirmations[] = sprintf($this->l('A shipment has been created in Packlink PRO for order %s '), $content);
-                break;
-            case 7:
-                return $this->l('Create shipment');
-                break;
-            case 8:
-                return $this->l('Print shipping label');
-                break;
-            case 9:
-                return $this->l('Create');
-                break;
-            case 10:
-                return $this->l('Print');
-                break;
-            case 11:
-                return $this->l('View');
-                break;
-            case 12:
-                return $this->l('Send');
-                break;
-            case 13:
-                return $this->l('Shipment');
-                break;
-            case 14:
-                $this->context->controller->warnings[] = sprintf($this->l('No api key found'));
-                break;
-            default:
-                # code...
-                break;
-        }
-    }
 
     ############################################################################################################
     # Tabs
@@ -577,11 +543,11 @@ class Packlink extends Module
             $pl_aide = "https://support-pro.packlink.com/hc/es-es/sections/202755109-Prestashop";
         }
 
-        $carrier_link = 'https://pro.packlink.' . $language . '/prestashop?utm_source=partnerships&utm_content=link&utm_campaign=backoffice';
+        $carrier_link = $this->pl_url. '/prestashop?utm_source=partnerships&utm_content=link&utm_campaign=backoffice';
 
-        $generate_api = 'https://pro.packlink.'.$language.'/private/settings/integrations/prestashop_module';
+        $generate_api = $this->pl_url.'/private/settings/integrations/prestashop_module';
 
-        $link_pro_addr = 'https://pro.packlink.'.$language.'/private/settings/warehouses';
+        $link_pro_addr = $this->pl_url.'/private/settings/warehouses';
 
         if (Tools::getValue('submit-conversion')) {
             $length = Tools::getValue('length');
@@ -628,7 +594,7 @@ class Packlink extends Module
 
         $update_msg = '';
         if (Configuration::get('PL_API_VERSION') == '' || version_compare(Configuration::get('PL_API_VERSION'), $this->version, '<')) {
-            $update_msg = $this->displayConfirmation($this->l('v1.1: All of your paid orders will now be imported automatically into Packlink PRO').'<br />'.$this->l('v1.2: Sent content(s) will be filled automatically for your Packlink PRO shipments').'<br />'.$this->l('v1.3: Shipment details and tracking number automatically imported into PrestaShop orders. Auto-population of missing product data in catalog (weight/dimensions)').'<br />'.$this->l('v1.4: Synchronization of Packlink PRO shipping statuses with PrestaShop order statuses to keep your orders up-to-date').'<br />'.$this->l('v1.5: Configuration page redesign. Default "ship from" address management from Packlink PRO settings').'<br />'.$this->l('v1.6: New actions buttons which indicates the next action required for each order status. Option to choose between automatic or manual shipment creation. Bulk printing.'));
+            $update_msg = $this->displayConfirmation($this->l('v1.1: All of your paid orders will now be imported automatically into Packlink PRO').'<br />'.$this->l('v1.2: Sent content(s) will be filled automatically for your Packlink PRO shipments').'<br />'.$this->l('v1.3: Shipment details and tracking number automatically imported into PrestaShop orders. Auto-population of missing product data in catalog (weight/dimensions)').'<br />'.$this->l('v1.4: Synchronization of Packlink PRO shipping statuses with PrestaShop order statuses to keep your orders up-to-date').'<br />'.$this->l('v1.5: Configuration page redesign. Default "ship from" address management from Packlink PRO settings').'<br />'.$this->l('v1.6: New actions buttons which indicates the next action required for each order status. Option to choose between automatic or manual shipment creation.'));
             Configuration::updateValue('PL_API_VERSION', $this->version);
         }
 
@@ -871,7 +837,7 @@ class Packlink extends Module
                 'reference' => $this->l('Shipping reference: ').$pl_order->draft_reference
             ));
             
-            if ($details->state == "AWAITING_COMPLETION") {
+            if ($details->state == "AWAITING_COMPLETION" || $details->state == "READY_TO_PURCHASE") {
                 $this->context->smarty->assign(array(
                     'suivi' => $this->l('Send'),
                     'iconBtn' => "icon-truck",
@@ -909,7 +875,7 @@ class Packlink extends Module
             }
             
 
-            if ($details->state == "AWAITING_COMPLETION") {
+            if ($details->state == "AWAITING_COMPLETION" || $details->state == "READY_TO_PURCHASE") {
                 return $expedition_pl;
             }
        
@@ -1061,7 +1027,7 @@ class Packlink extends Module
         $pl_order = new PLOrder($id_order);
         if ($pl_order->details && $pl_order->details != '') {
             $details = Tools::jsonDecode($pl_order->details);
-            if ($details->state == "AWAITING_COMPLETION") {
+            if ($details->state == "AWAITING_COMPLETION" || $details->state == "READY_TO_PURCHASE") {
                 return '';
             }
             if (version_compare(_PS_VERSION_, '1.6', '<')) {
@@ -1105,7 +1071,7 @@ class Packlink extends Module
                     'weight' => $datas->packages[0]->weight,
                     'cost' => $datas->price->total_price,
                     'tracking' => $datas->trackings,
-                    'tracking_url' => 'https://pro.packlink.'.$language.'/private/shipments'.$track,
+                    'tracking_url' => $this->pl_url.'/private/shipments'.$track,
                     'location' => $datas->to,
                     'tracking_url_fo' => $datas->tracking_url,
                     'dropoff_point_id' => $datas->dropoff_point_id,
@@ -1123,23 +1089,27 @@ class Packlink extends Module
 
                     $products = $order->getProducts();
 
-                    foreach ($products as $key => $value) {
-                        $product = new Product($products[$key]['product_id']);
+                    if (isset($products) && !empty($products)) {
+                        foreach ($products as $key => $value) {
+                            $product = new Product($products[$key]['product_id']);
+                        }
+
+                        if (!empty($product->link_rewrite)) {
+                            if ($product->width == 0) {
+                                $product->width = ($datas->packages[0]->width * Configuration::get('PL_API_CM'));
+                            }
+                            if ($product->depth == 0) {
+                                $product->depth = ($datas->packages[0]->length * Configuration::get('PL_API_CM'));
+                            }
+                            if ($product->weight == 0) {
+                                $product->weight = ($datas->packages[0]->weight * Configuration::get('PL_API_KG'));
+                            }
+                            if ($product->height == 0) {
+                                $product->height = ($datas->packages[0]->height * Configuration::get('PL_API_CM'));
+                            }
+                            $product->save();
+                        }
                     }
-                    
-                    if ($product->width == 0) {
-                        $product->width = ($datas->packages[0]->width * Configuration::get('PL_API_CM'));
-                    }
-                    if ($product->depth == 0) {
-                        $product->depth = ($datas->packages[0]->length * Configuration::get('PL_API_CM'));
-                    }
-                    if ($product->weight == 0) {
-                        $product->weight = ($datas->packages[0]->weight * Configuration::get('PL_API_KG'));
-                    }
-                    if ($product->height == 0) {
-                        $product->height = ($datas->packages[0]->height * Configuration::get('PL_API_CM'));
-                    }
-                    $product->save();
                 }
             }
         }
@@ -1194,7 +1164,7 @@ class Packlink extends Module
         $pl_shippement = '';
         if ($pl_order->details && $pl_order->details != '') {
             $details = Tools::jsonDecode($pl_order->details);
-            if ($details->state == "AWAITING_COMPLETION") {
+            if ($details->state == "AWAITING_COMPLETION" || $details->state == "READY_TO_PURCHASE") {
                 return $pl_shippement;
             }
             $location = '';
@@ -1330,6 +1300,9 @@ class Packlink extends Module
 
         $sdk = new PacklinkSDK(Configuration::get('PL_API_KEY'), $this);
         $datas_client = $sdk->getCitiesByPostCode($address_delivery[0]['postcode'], $country_delivery);
+        if (isset($datas_client->message)) {
+            return false;
+        }
 
         $postal_zone_id_to = $datas_client[0]->postalZone->id;
         $zip_code_id_to = $datas_client[0]->id;
@@ -1436,7 +1409,7 @@ class Packlink extends Module
                         'category_name'  => $category,
                         'picture_url' => $product_img_link,
                         'item_id' => $value['product_id'],
-                        'price' => $value['product_price_wt'],
+                        'price' => (float) $value['product_price_wt'],
                         'item_url' => $product_link,
                         'title' => $value['product_name']
                 );
